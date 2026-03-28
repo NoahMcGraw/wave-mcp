@@ -3,3 +3,4 @@ build/
 .env
 .cursor/mcp.json
 invoicing-config.json
+memories/private/

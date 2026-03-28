@@ -358,15 +358,11 @@ export function registerInvoiceTools(client: WaveClient) {
       parameters: {
         type: 'object',
         properties: {
-          businessId: { type: 'string', description: 'Business ID' },
           invoiceId: { type: 'string', description: 'Invoice ID' },
         },
         required: ['invoiceId'],
       },
       handler: async (args: any) => {
-        const businessId = args.businessId || client.getBusinessId();
-        if (!businessId) throw new Error('businessId required');
-
         const mutation = `
           mutation DeleteInvoice($input: InvoiceDeleteInput!) {
             invoiceDelete(input: $input) {
@@ -381,7 +377,6 @@ export function registerInvoiceTools(client: WaveClient) {
 
         const result = await client.mutate(mutation, {
           input: {
-            businessId,
             invoiceId: args.invoiceId,
           },
         });
