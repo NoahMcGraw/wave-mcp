@@ -2,8 +2,6 @@
 
 An MCP server for [Wave Accounting](https://waveapps.com), providing access to invoicing, customers, products, transactions, bills, estimates, taxes, and financial reporting via Wave's GraphQL API.
 
-Forked from [BusyBee3333/wave-mcp-2026-complete](https://github.com/BusyBee3333/wave-mcp-2026-complete) and cleaned up.
-
 ## Features
 
 ### 54 Tools across 10 categories
