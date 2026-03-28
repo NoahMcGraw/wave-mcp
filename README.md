@@ -1,249 +1,362 @@
-> **🚀 Don't want to self-host?** [Join the waitlist for our fully managed solution →](https://mcpengage.com/wave)
-> 
-> Zero setup. Zero maintenance. Just connect and automate.
+# Wave MCP Server
 
----
+A complete Model Context Protocol (MCP) server for Wave Accounting, providing comprehensive access to invoicing, customers, products, transactions, bills, estimates, taxes, and financial reporting.
 
-# 📊 Wave MCP Server — AI-Native Small Business Accounting
+## Features
 
-## 💡 What This Unlocks
+### 🔧 **45+ Tools** across 10 categories:
 
-**Free accounting software meets AI superpowers.** This MCP server connects Claude to Wave's GraphQL API, giving you natural language control over invoices, customers, expenses, and financial data—no manual data entry required.
+#### Invoices (10 tools)
+- List, get, create, update, delete invoices
+- Send invoices via email
+- Approve and mark invoices as sent
+- List and record invoice payments
 
-### 🎯 Wave-Native Power Moves
+#### Customers (6 tools)
+- List, get, create, update, delete customers
+- Search customers by name or email
 
-Real small business workflows you can automate instantly:
+#### Products (5 tools)
+- List, get, create, update, archive products and services
+- Filter by sold/bought status
 
-1. **Bulk invoice generation for service businesses**  
-   *"For business ID abc123, create invoices for all customers who had transactions last month—use standard 30-day terms, group by customer, calculate totals automatically."*  
-   → Generate 50 invoices in one prompt vs. hours of manual entry.
+#### Accounts (4 tools)
+- List, get, create, update chart of accounts
+- Filter by account type (ASSET, LIABILITY, EQUITY, INCOME, EXPENSE)
 
-2. **Customer database cleanup**  
-   *"List all customers with incomplete addresses, cross-reference with recent invoices, update missing postal codes and phone numbers from invoice metadata."*  
-   → Clean CRM hygiene without tedious manual updates.
+#### Transactions (6 tools)
+- List, get, create, update transactions
+- Categorize transactions to accounts
+- List transaction attachments
 
-3. **Expense categorization workflow**  
-   *"Pull all uncategorized transactions from my checking account, match merchants to expense categories using my historical patterns, create expense records with proper accounting codes."*  
-   → Automated bookkeeping that used to require a dedicated bookkeeper.
+#### Bills (7 tools)
+- List, get, create, update bills (accounts payable)
+- List and record bill payments
 
-4. **Multi-business revenue dashboard**  
-   *"Query all my Wave businesses, show total invoiced vs. paid for each in the last quarter, flag businesses with overdue invoices > $500."*  
-   → Cross-business intelligence from Wave's multi-business support.
+#### Estimates (6 tools)
+- List, get, create, update, send estimates
+- Convert estimates to invoices
 
-5. **Cash flow forecasting**  
-   *"Analyze invoice payment patterns for the past 6 months, calculate average days to payment per customer, project cash inflows for next 30 days based on outstanding invoices."*  
-   → Data-driven forecasting without spreadsheets.
+#### Taxes (3 tools)
+- List, get, create sales taxes
 
-### 🔗 The Real Power: Combining Tools
+#### Businesses (3 tools)
+- List businesses
+- Get current or specific business details
 
-Claude orchestrates multi-step Wave workflows:
+#### Reporting (5 tools)
+- Profit & Loss (Income Statement)
+- Balance Sheet
+- Aged Receivables (A/R Aging)
+- Tax Summary
+- Cashflow Statement
 
-- `list_businesses` → `list_invoices` (per business) → `create_invoice` (for unbilled work)
-- `list_customers` → filter duplicates → `create_customer` (with cleaned data)
-- `list_transactions` → categorize → `create_expense` (with proper accounting codes)
-- `list_accounts` → map to categories → generate financial reports
+### 📱 **17 MCP Apps** - Pre-built UI workflows:
 
-## 📦 What's Inside
+1. **invoice-dashboard** - Overview of invoices with status breakdown
+2. **invoice-detail** - Detailed invoice view with payments and actions
+3. **invoice-builder** - Create/edit invoices with line items
+4. **customer-detail** - Customer profile with invoice history
+5. **customer-grid** - Searchable customer grid
+6. **product-catalog** - Product/service management
+7. **chart-of-accounts** - Account tree view
+8. **transaction-feed** - Real-time transaction stream
+9. **transaction-categorizer** - Bulk transaction categorization
+10. **bill-manager** - Track and pay bills
+11. **estimate-builder** - Create and manage quotes
+12. **tax-overview** - Tax configuration and summary
+13. **profit-loss** - P&L report with visualization
+14. **balance-sheet** - Balance sheet report
+15. **cashflow-chart** - Cashflow waterfall chart
+16. **aging-report** - Aged receivables report
+17. **business-overview** - Business dashboard with quick actions
 
-**8 GraphQL tools** covering Wave's core accounting operations:
-
-| Tool | Purpose |
-|------|---------|
-| `list_businesses` | Query all businesses in your Wave account |
-| `list_invoices` | Browse invoices with pagination & filtering by business |
-| `create_invoice` | Generate invoices with line items, terms, customer details |
-| `list_customers` | Access customer directory per business |
-| `create_customer` | Add new customers with contact & billing info |
-| `list_accounts` | View chart of accounts (assets, liabilities, income, expenses) |
-| `list_transactions` | Query transaction history with date ranges |
-| `create_expense` | Record expenses with proper accounting codes & line items |
-
-All powered by Wave's **GraphQL API** with proper error handling, automatic pagination, and TypeScript types.
-
-## 🚀 Quick Start
-
-### Option 1: Claude Desktop (Local)
-
-1. **Clone and build:**
-   ```bash
-   git clone https://github.com/BusyBee3333/Wave-MCP-2026-Complete.git
-   cd wave-mcp-2026-complete
-   npm install
-   npm run build
-   ```
-
-2. **Get your Wave API token:**
-   - Go to [Wave Developer Portal](https://developer.waveapps.com/hc/en-us/articles/360019762711)
-   - Create an app or use "Manage Your Applications"
-   - Generate an **API token** for your account
-   - Copy the token (starts with `gql_...`)
-
-3. **Configure Claude Desktop:**
-   
-   On macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`  
-   On Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-
-   ```json
-   {
-     "mcpServers": {
-       "wave": {
-         "command": "node",
-         "args": ["/ABSOLUTE/PATH/TO/wave-mcp-2026-complete/dist/index.js"],
-         "env": {
-           "WAVE_API_TOKEN": "gql_your_token_here"
-         }
-       }
-     }
-   }
-   ```
-
-4. **Restart Claude Desktop**  
-   Look for the 🔌 icon showing Wave tools are connected.
-
-### Option 2: Docker
+## Installation
 
 ```bash
-docker build -t wave-mcp .
-docker run \
-  -e WAVE_API_TOKEN=gql_your_token_here \
-  wave-mcp
+cd servers/wave
+npm install
+npm run build
 ```
 
-## 🔐 Authentication
-
-Wave uses **OAuth 2.0 + API Tokens** for GraphQL API access:
-
-1. **Register your application** at [Wave Developer Portal](https://developer.waveapps.com)
-2. **Generate an API token** (or OAuth credentials for production apps)
-3. **Use the token** in environment variable `WAVE_API_TOKEN`
-
-**Token format:** Starts with `gql_` followed by alphanumeric string.
-
-**Scopes required:**
-- `business:read` — View business details
-- `invoice:read`, `invoice:write` — Manage invoices
-- `customer:read`, `customer:write` — Manage customers
-- `transaction:read`, `transaction:write` — Access transactions & expenses
-
-**Token security:** Tokens don't expire but can be revoked in your Wave settings. Store securely and never commit to version control.
-
-## 🎯 Example Prompts
-
-Once connected to Claude, use natural language for Wave accounting:
-
-### Multi-Business Operations
-- *"Show me all my Wave businesses with their currencies and whether they're personal or business accounts."*
-- *"For my business 'Acme Consulting', list all open invoices sorted by due date."*
-
-### Invoice Management
-- *"Create an invoice for business ID QnVz...X12 for customer ID Q3Vz...abc with 3 line items: Strategy Session $500, Implementation $2000, Support Plan $300/month. Due in 15 days."*
-- *"List all invoices for my Toronto business from the past 30 days and show me which ones haven't been paid."*
-- *"Generate a summary of all overdue invoices across all my businesses."*
-
-### Customer Operations
-- *"Add a new customer to my main business: 'Global Tech Inc', email: billing@globaltech.com, address in New York NY, currency USD."*
-- *"Show me all customers who have been invoiced in the last 6 months but have incomplete contact information."*
-
-### Financial Tracking
-- *"List all expense accounts in my chart of accounts and group by type (assets, liabilities, income, expenses)."*
-- *"Show me all transactions in my checking account from January 2024 and calculate the net cash flow."*
-- *"Create an expense record for $127.50 from 'Office Supplies' account on 2024-01-15 with description 'Printer paper and toner'."*
-
-### Analysis & Intelligence
-- *"Which customers have the longest average payment times? Show data from the past year."*
-- *"Calculate total revenue per business for Q1 2024 and compare to Q4 2023."*
-- *"Find all invoices that are 30+ days past due and draft reminder emails for each customer."*
-
-## 🛠️ Development
+## Configuration
 
 ### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Wave account (free) with API access enabled
 
-### Local Setup
+1. **Wave Account**: You need a Wave account at [waveapps.com](https://waveapps.com)
+2. **API Access Token**: Get an OAuth2 access token from [Wave Developer Portal](https://developer.waveapps.com/)
+
+### Environment Variables
 
 ```bash
-git clone https://github.com/BusyBee3333/Wave-MCP-2026-Complete.git
-cd wave-mcp-2026-complete
-npm install
-cp .env.example .env
-# Edit .env with your Wave API token
+# Required
+WAVE_ACCESS_TOKEN=your_oauth2_access_token
+
+# Optional - set a default business ID
+WAVE_BUSINESS_ID=your_business_id
+```
+
+## Usage
+
+### As MCP Server
+
+Run the server:
+
+```bash
+WAVE_ACCESS_TOKEN=your_token npm run dev
+```
+
+### With Claude Desktop
+
+Add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "wave": {
+      "command": "node",
+      "args": ["/path/to/mcpengine-repo/servers/wave/build/main.js"],
+      "env": {
+        "WAVE_ACCESS_TOKEN": "your_access_token",
+        "WAVE_BUSINESS_ID": "optional_business_id"
+      }
+    }
+  }
+}
+```
+
+### With NPX
+
+```bash
+npx @mcpengine/wave-server
+```
+
+## Tool Examples
+
+### List Invoices
+
+```typescript
+// List all invoices
+wave_list_invoices({ businessId: "business_123" })
+
+// Filter by status
+wave_list_invoices({ 
+  businessId: "business_123",
+  status: "OVERDUE"
+})
+
+// Filter by customer
+wave_list_invoices({
+  businessId: "business_123", 
+  customerId: "customer_456"
+})
+```
+
+### Create Invoice
+
+```typescript
+wave_create_invoice({
+  businessId: "business_123",
+  customerId: "customer_456",
+  invoiceDate: "2025-01-15",
+  dueDate: "2025-02-15",
+  title: "January Services",
+  items: [
+    {
+      description: "Consulting Services",
+      quantity: 10,
+      unitPrice: "150.00",
+      taxIds: ["tax_789"]
+    },
+    {
+      productId: "product_101",
+      description: "Software License",
+      quantity: 1,
+      unitPrice: "500.00"
+    }
+  ]
+})
+```
+
+### Create Customer
+
+```typescript
+wave_create_customer({
+  businessId: "business_123",
+  name: "Acme Corporation",
+  email: "billing@acme.com",
+  addressLine1: "123 Main Street",
+  city: "San Francisco",
+  provinceCode: "CA",
+  countryCode: "US",
+  postalCode: "94105"
+})
+```
+
+### Generate Reports
+
+```typescript
+// Profit & Loss
+wave_profit_and_loss({
+  businessId: "business_123",
+  startDate: "2025-01-01",
+  endDate: "2025-01-31"
+})
+
+// Balance Sheet
+wave_balance_sheet({
+  businessId: "business_123",
+  asOfDate: "2025-01-31"
+})
+
+// Aged Receivables
+wave_aged_receivables({
+  businessId: "business_123",
+  asOfDate: "2025-01-31"
+})
+```
+
+## API Architecture
+
+### GraphQL-Based
+
+Wave uses a GraphQL API, not REST. The server handles:
+
+- **Authentication**: OAuth2 Bearer token
+- **Error Handling**: GraphQL error parsing and network error detection
+- **Type Safety**: Full TypeScript types for all Wave entities
+- **Pagination**: Automatic page handling for large result sets
+
+### Client Implementation
+
+```typescript
+// client.ts
+import { GraphQLClient } from 'graphql-request';
+
+const client = new GraphQLClient('https://gql.waveapps.com/graphql/public', {
+  headers: {
+    Authorization: `Bearer ${accessToken}`
+  }
+});
+```
+
+## Tool Organization
+
+```
+src/tools/
+├── invoices-tools.ts      # 10 tools for invoice management
+├── customers-tools.ts     # 6 tools for customer management
+├── products-tools.ts      # 5 tools for product/service catalog
+├── accounts-tools.ts      # 4 tools for chart of accounts
+├── transactions-tools.ts  # 6 tools for transaction management
+├── bills-tools.ts         # 7 tools for bills payable
+├── estimates-tools.ts     # 6 tools for estimates/quotes
+├── taxes-tools.ts         # 3 tools for sales tax management
+├── businesses-tools.ts    # 3 tools for business info
+└── reporting-tools.ts     # 5 tools for financial reports
+```
+
+## Type System
+
+Complete TypeScript types for all Wave entities:
+
+```typescript
+// types/index.ts
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  customer: Customer;
+  status: 'DRAFT' | 'SENT' | 'VIEWED' | 'PAID' | 'PARTIAL' | 'OVERDUE' | 'APPROVED';
+  items: InvoiceItem[];
+  total: Money;
+  amountDue: Money;
+  amountPaid: Money;
+  // ... full type definitions
+}
+```
+
+## Error Handling
+
+The server provides comprehensive error handling:
+
+```typescript
+try {
+  const invoice = await wave_get_invoice({ invoiceId: "inv_123" });
+} catch (error) {
+  // GraphQL errors
+  if (error.graphQLErrors) {
+    console.error('GraphQL errors:', error.graphQLErrors);
+  }
+  
+  // Network errors
+  if (error.networkError) {
+    console.error('Network error:', error.networkError);
+  }
+  
+  // HTTP status codes
+  if (error.statusCode) {
+    console.error('HTTP status:', error.statusCode);
+  }
+}
+```
+
+## MCP Apps
+
+Apps are accessed via resources:
+
+```typescript
+// List all apps
+const apps = await readResource({ uri: "wave://apps" });
+
+// Load specific app
+const invoiceDashboard = await readResource({ 
+  uri: "wave://apps/invoice-dashboard" 
+});
+```
+
+Each app includes:
+- **Display name and description**
+- **Default tools** to load
+- **Layout configuration** for UI rendering
+- **Workflow steps** (for process-driven apps)
+
+## Development
+
+### Build
+
+```bash
 npm run build
-npm run dev
 ```
 
-### Testing
+### Watch Mode
 
 ```bash
-npm test                  # Run all tests
-npm run test:watch        # Watch mode
-npm run test:coverage     # Coverage report
+npm run watch
 ```
 
-### GraphQL Playground
+### Type Checking
 
-Wave provides a [GraphQL explorer](https://developer.waveapps.com/hc/en-us/articles/360019968212-API-Explorer) for testing queries.
+```bash
+npx tsc --noEmit
+```
 
-## 🐛 Troubleshooting
+## License
 
-### "Authentication failed" / GraphQL errors
-- **Token format:** Ensure token starts with `gql_` (not OAuth bearer tokens)
-- **Token validity:** Check token hasn't been revoked in Wave settings
-- **Scopes:** Verify your app has required permissions for the operations you're trying
+MIT
 
-### "Business not found" / Empty results
-- **Get business IDs:** Run `list_businesses` first to get valid business IDs
-- **Wave uses GraphQL IDs:** IDs are base64-encoded strings like `QnVzaW5lc3M6YWJjMTIz`
-- **Multiple businesses:** If you have multiple businesses, specify which one in each query
+## Links
 
-### "Tools not appearing in Claude"
-- **Restart required:** Always restart Claude Desktop after config changes
-- **Absolute paths:** Use full paths in config (no `~/` shortcuts)
-- **Build check:** Verify `dist/index.js` exists after running `npm run build`
+- [Wave Developer Portal](https://developer.waveapps.com/)
+- [Wave GraphQL API Docs](https://developer.waveapps.com/hc/en-us/articles/360019762711)
+- [MCP Protocol Specification](https://modelcontextprotocol.io/)
+- [MCPEngine Repository](https://github.com/BusyBee3333/mcpengine)
 
-### GraphQL-specific issues
-- **Pagination:** Wave uses cursor-based pagination; use `pageInfo` to navigate results
-- **Nested queries:** Some operations require nested GraphQL selections (handled by this MCP server)
-- **Rate limiting:** Wave has rate limits; the MCP server will throw errors if exceeded
+## Contributing
 
-## 📖 Resources
+Contributions welcome! Please see the main [MCPEngine repository](https://github.com/BusyBee3333/mcpengine) for guidelines.
 
-- **[Wave GraphQL API Docs](https://developer.waveapps.com/hc/en-us/articles/360019968212)** — Official API reference
-- **[Wave API Getting Started](https://developer.waveapps.com/hc/en-us/articles/360019762711)** — Authentication & setup
-- **[GraphQL Schema Explorer](https://developer.waveapps.com/hc/en-us/articles/360020154331)** — Browse available queries & mutations
-- **[Wave Changelog](https://developer.waveapps.com/hc/en-us/sections/360003012132-Changelog)** — API updates & deprecations
-- **[MCP Protocol Specification](https://modelcontextprotocol.io/)** — How MCP servers work
-- **[Claude Desktop Documentation](https://claude.ai/desktop)** — Desktop app setup
+## Support
 
-## 🤝 Contributing
-
-Contributions welcome! To add features:
-
-1. Fork the repo
-2. Create a feature branch (`git checkout -b feature/payment-tracking`)
-3. Commit your changes (`git commit -m 'Add payment tracking tools'`)
-4. Push to the branch (`git push origin feature/payment-tracking`)
-5. Open a Pull Request
-
-**Ideas for contributions:**
-- Support for Wave's products/services catalog
-- Sales tax calculation helpers
-- Receipt image uploads via GraphQL mutations
-- Recurring invoice templates
-- Financial report generation (P&L, balance sheet)
-- Multi-currency conversion helpers
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details
-
-## 🙏 Credits
-
-Built by [MCPEngage](https://mcpengage.com) — AI infrastructure for business software.
-
-Want more MCP servers? Check out our [full catalog](https://mcpengage.com) covering 30+ business platforms.
-
----
-
-**Questions?** Open an issue or join our [Discord community](https://discord.gg/mcpengage).
+For issues or questions:
+- Wave API issues: [Wave Developer Support](https://developer.waveapps.com/hc/en-us)
+- MCP Server issues: [GitHub Issues](https://github.com/BusyBee3333/mcpengine/issues)
