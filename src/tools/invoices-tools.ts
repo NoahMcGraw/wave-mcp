@@ -160,31 +160,77 @@ export function registerInvoiceTools(client: WaveClient) {
       parameters: {
         type: 'object',
         properties: {
-          businessId: { type: 'string', description: 'Business ID' },
+          businessId: { type: 'string', description: 'Business ID (uses global default if not provided)' },
           customerId: { type: 'string', description: 'Customer ID' },
-          invoiceDate: { type: 'string', description: 'Invoice date (YYYY-MM-DD)' },
-          dueDate: { type: 'string', description: 'Due date (YYYY-MM-DD)' },
-          title: { type: 'string', description: 'Invoice title' },
-          subhead: { type: 'string', description: 'Invoice subhead' },
-          footer: { type: 'string', description: 'Invoice footer text' },
-          memo: { type: 'string', description: 'Internal memo' },
+          status: {
+            type: 'string',
+            enum: ['DRAFT', 'SAVED'],
+            description: 'Invoice status (default: DRAFT)',
+          },
+          currency: { type: 'string', description: 'Currency code (e.g. USD). Defaults to business currency' },
+          title: { type: 'string', description: 'Invoice title. Defaults to business setting' },
+          subhead: { type: 'string', description: 'Invoice subheading text. Defaults to business setting' },
+          invoiceNumber: { type: 'string', description: 'Invoice number. Auto-increments if not provided' },
+          poNumber: { type: 'string', description: 'Purchase order or sales order number' },
+          invoiceDate: { type: 'string', description: 'Invoice date (YYYY-MM-DD). Defaults to today' },
+          exchangeRate: { type: 'string', description: 'Exchange rate to business currency from invoice currency' },
+          dueDate: { type: 'string', description: 'Due date (YYYY-MM-DD). Defaults per business payment terms' },
+          memo: { type: 'string', description: 'Invoice memo/notes. Defaults to business setting' },
+          footer: { type: 'string', description: 'Invoice footer text. Defaults to business setting' },
           items: {
             type: 'array',
             description: 'Invoice line items',
             items: {
               type: 'object',
               properties: {
-                productId: { type: 'string', description: 'Product ID (optional)' },
-                description: { type: 'string', description: 'Line item description' },
-                quantity: { type: 'number', description: 'Quantity' },
-                unitPrice: { type: 'string', description: 'Unit price' },
-                taxIds: { type: 'array', items: { type: 'string' }, description: 'Tax IDs to apply' },
+                productId: { type: 'string', description: 'Product ID (required)' },
+                description: { type: 'string', description: 'Override product description' },
+                quantity: { type: 'number', description: 'Number of units' },
+                unitPrice: { type: 'string', description: 'Override product unit price' },
+                taxes: {
+                  type: 'array',
+                  description: 'Sales taxes to apply',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      salesTaxId: { type: 'string', description: 'Sales tax ID' },
+                    },
+                    required: ['salesTaxId'],
+                  },
+                },
               },
-              required: ['description', 'quantity', 'unitPrice'],
+              required: ['productId'],
             },
           },
+          discounts: {
+            type: 'array',
+            description: 'Invoice discounts (max 1)',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', description: 'Discount name' },
+                discountType: { type: 'string', enum: ['FIXED', 'PERCENTAGE'], description: 'Discount type' },
+                amount: { type: 'string', description: 'Discount amount (for FIXED type)' },
+                percentage: { type: 'string', description: 'Discount percentage (for PERCENTAGE type)' },
+              },
+              required: ['discountType'],
+            },
+          },
+          disableAmexPayments: { type: 'boolean', description: 'Disable American Express payments for this invoice' },
+          disableCreditCardPayments: { type: 'boolean', description: 'Disable credit card payments for this invoice' },
+          disableBankPayments: { type: 'boolean', description: 'Disable bank payments for this invoice' },
+          itemTitle: { type: 'string', description: 'Label for the Item column' },
+          unitTitle: { type: 'string', description: 'Label for the Unit column' },
+          priceTitle: { type: 'string', description: 'Label for the Price column' },
+          amountTitle: { type: 'string', description: 'Label for the Amount column' },
+          hideName: { type: 'boolean', description: 'Hide product name in line items' },
+          hideDescription: { type: 'boolean', description: 'Hide description in line items' },
+          hideUnit: { type: 'boolean', description: 'Hide unit in line items' },
+          hidePrice: { type: 'boolean', description: 'Hide price in line items' },
+          hideAmount: { type: 'boolean', description: 'Hide amount in line items' },
+          requireTermsOfServiceAgreement: { type: 'boolean', description: 'Require customer to accept terms of service' },
         },
-        required: ['customerId', 'invoiceDate', 'items'],
+        required: ['customerId'],
       },
       handler: async (args: any) => {
         const businessId = args.businessId || client.getBusinessId();
@@ -197,8 +243,12 @@ export function registerInvoiceTools(client: WaveClient) {
                 id
                 invoiceNumber
                 status
+                invoiceDate
+                dueDate
                 total { value currency { code } }
+                amountDue { value }
                 viewUrl
+                pdfUrl
               }
               didSucceed
               inputErrors {
@@ -209,20 +259,31 @@ export function registerInvoiceTools(client: WaveClient) {
           }
         `;
 
-        const input = {
-          businessId,
-          customerId: args.customerId,
-          invoiceDate: args.invoiceDate,
-          dueDate: args.dueDate,
-          title: args.title,
-          subhead: args.subhead,
-          footer: args.footer,
-          memo: args.memo,
-          items: args.items,
-        };
+        const input: any = { businessId, customerId: args.customerId };
+
+        const optionalStrings = [
+          'status', 'currency', 'title', 'subhead', 'invoiceNumber', 'poNumber',
+          'invoiceDate', 'exchangeRate', 'dueDate', 'memo', 'footer',
+          'itemTitle', 'unitTitle', 'priceTitle', 'amountTitle',
+        ];
+        for (const key of optionalStrings) {
+          if (args[key] !== undefined) input[key] = args[key];
+        }
+
+        const optionalBooleans = [
+          'disableAmexPayments', 'disableCreditCardPayments', 'disableBankPayments',
+          'hideName', 'hideDescription', 'hideUnit', 'hidePrice', 'hideAmount',
+          'requireTermsOfServiceAgreement',
+        ];
+        for (const key of optionalBooleans) {
+          if (args[key] !== undefined) input[key] = args[key];
+        }
+
+        if (args.items) input.items = args.items;
+        if (args.discounts) input.discounts = args.discounts;
 
         const result = await client.mutate(mutation, { input });
-        
+
         if (!result.invoiceCreate.didSucceed) {
           throw new Error(`Failed to create invoice: ${JSON.stringify(result.invoiceCreate.inputErrors)}`);
         }
