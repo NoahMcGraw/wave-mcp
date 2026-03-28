@@ -15,8 +15,8 @@ export function registerBusinessTools(client: WaveClient) {
       },
       handler: async (args: any) => {
         const query = `
-          query GetBusinesses {
-            businesses {
+          query ListBusinesses($page: Int!, $pageSize: Int!) {
+            businesses(page: $page, pageSize: $pageSize) {
               edges {
                 node {
                   id
@@ -25,22 +25,13 @@ export function registerBusinessTools(client: WaveClient) {
                     code
                     symbol
                   }
-                  timezone
-                  address {
-                    addressLine1
-                    addressLine2
-                    city
-                    provinceCode
-                    countryCode
-                    postalCode
-                  }
                 }
               }
             }
           }
         `;
 
-        const result = await client.query(query);
+        const result = await client.query(query, { page: 1, pageSize: 50 });
 
         return result.businesses.edges.map((e: any) => e.node);
       },

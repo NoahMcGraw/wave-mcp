@@ -514,33 +514,34 @@ export function registerInvoiceTools(client: WaveClient) {
     },
 
     wave_create_invoice_payment: {
-      description: 'Record a payment received for an invoice',
+      description: 'Record a manual payment received for an invoice',
       parameters: {
         type: 'object',
         properties: {
-          businessId: { type: 'string', description: 'Business ID' },
           invoiceId: { type: 'string', description: 'Invoice ID' },
-          amount: { type: 'string', description: 'Payment amount' },
-          date: { type: 'string', description: 'Payment date (YYYY-MM-DD)' },
-          source: { type: 'string', description: 'Payment source/method' },
+          paymentAccountId: { type: 'string', description: 'Payment account ID (from chart of accounts)' },
+          amount: { type: 'string', description: 'Payment amount (e.g. "100.00")' },
+          paymentDate: { type: 'string', description: 'Payment date (YYYY-MM-DD)' },
+          paymentMethod: {
+            type: 'string',
+            enum: ['BANK_TRANSFER', 'CASH', 'CHEQUE', 'CREDIT_CARD', 'OTHER', 'PAYPAL', 'UNSPECIFIED'],
+            description: 'Payment method',
+          },
+          exchangeRate: { type: 'string', description: 'Exchange rate (default: "1", only needed for cross-currency)' },
+          memo: { type: 'string', description: 'Payment notes/memo' },
         },
-        required: ['invoiceId', 'amount', 'date'],
+        required: ['invoiceId', 'paymentAccountId', 'amount', 'paymentDate', 'paymentMethod'],
       },
       handler: async (args: any) => {
-        const businessId = args.businessId || client.getBusinessId();
-        if (!businessId) throw new Error('businessId required');
-
         const mutation = `
-          mutation CreateInvoicePayment($input: InvoicePaymentCreateInput!) {
-            invoicePaymentCreate(input: $input) {
-              payment {
+          mutation CreateManualPayment($input: InvoicePaymentCreateManualInput!) {
+            invoicePaymentCreateManual(input: $input) {
+              invoicePayment {
                 id
-                amount {
-                  value
-                  currency { code }
-                }
-                date
-                source
+                amount
+                paymentDate
+                paymentMethod
+                memo
               }
               didSucceed
               inputErrors {
@@ -551,21 +552,77 @@ export function registerInvoiceTools(client: WaveClient) {
           }
         `;
 
-        const result = await client.mutate(mutation, {
-          input: {
-            businessId,
-            invoiceId: args.invoiceId,
-            amount: args.amount,
-            date: args.date,
-            source: args.source,
-          },
-        });
+        const input: any = {
+          invoiceId: args.invoiceId,
+          paymentAccountId: args.paymentAccountId,
+          amount: args.amount,
+          paymentDate: args.paymentDate,
+          paymentMethod: args.paymentMethod,
+          exchangeRate: args.exchangeRate || '1',
+        };
 
-        if (!result.invoicePaymentCreate.didSucceed) {
-          throw new Error(`Failed to create payment: ${JSON.stringify(result.invoicePaymentCreate.inputErrors)}`);
+        if (args.memo) {
+          input.memo = args.memo;
         }
 
-        return result.invoicePaymentCreate.payment;
+        const result = await client.mutate(mutation, { input });
+
+        if (!result.invoicePaymentCreateManual.didSucceed) {
+          throw new Error(`Failed to create payment: ${JSON.stringify(result.invoicePaymentCreateManual.inputErrors)}`);
+        }
+
+        return result.invoicePaymentCreateManual.invoicePayment;
+      },
+    },
+
+    wave_send_payment_receipt: {
+      description: 'Send a payment receipt email for an invoice payment',
+      parameters: {
+        type: 'object',
+        properties: {
+          invoiceId: { type: 'string', description: 'Invoice ID' },
+          invoicePaymentId: { type: 'string', description: 'Invoice Payment ID' },
+          to: { type: 'array', items: { type: 'string' }, description: 'Recipient email addresses' },
+          subject: { type: 'string', description: 'Email subject' },
+          message: { type: 'string', description: 'Email message body' },
+          attachPdf: { type: 'boolean', description: 'Attach invoice PDF (default: false)' },
+          ccMyself: { type: 'boolean', description: 'CC yourself on the email' },
+          fromAddress: { type: 'string', description: 'The email address the receipt is sent from' },
+        },
+        required: ['invoiceId', 'invoicePaymentId', 'to'],
+      },
+      handler: async (args: any) => {
+        const mutation = `
+          mutation SendPaymentReceipt($input: InvoicePaymentReceiptSendInput!) {
+            invoicePaymentReceiptSend(input: $input) {
+              didSucceed
+              inputErrors {
+                message
+                path
+              }
+            }
+          }
+        `;
+
+        const input: any = {
+          invoiceId: args.invoiceId,
+          invoicePaymentId: args.invoicePaymentId,
+          to: args.to,
+        };
+
+        if (args.subject) input.subject = args.subject;
+        if (args.message) input.message = args.message;
+        if (args.attachPdf !== undefined) input.attachPdf = args.attachPdf;
+        if (args.ccMyself !== undefined) input.ccMyself = args.ccMyself;
+        if (args.fromAddress) input.fromAddress = args.fromAddress;
+
+        const result = await client.mutate(mutation, { input });
+
+        if (!result.invoicePaymentReceiptSend.didSucceed) {
+          throw new Error(`Failed to send receipt: ${JSON.stringify(result.invoicePaymentReceiptSend.inputErrors)}`);
+        }
+
+        return { success: true, message: 'Payment receipt sent successfully' };
       },
     },
   };
