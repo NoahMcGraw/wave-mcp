@@ -1,8 +1,7 @@
 {
-  "name": "@mcpengine/wave-server",
+  "name": "wave-mcp",
   "version": "1.0.0",
-  "description": "MCP server for Wave Accounting - complete financial management, invoicing, and reporting",
-  "author": "MCPEngine",
+  "description": "MCP server for Wave Accounting — invoicing, customers, bills, reporting via GraphQL",
   "license": "MIT",
   "type": "module",
   "bin": {

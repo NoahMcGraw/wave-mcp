@@ -28,7 +28,6 @@ async function main() {
   const server = new WaveMCPServer(accessToken, businessId);
 
   console.error('Wave MCP Server starting...');
-  console.error(`Access token: ${accessToken.substring(0, 10)}...`);
   if (businessId) {
     console.error(`Default business ID: ${businessId}`);
   }
