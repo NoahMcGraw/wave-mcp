@@ -139,19 +139,46 @@ export function registerAccountTools(client: WaveClient) {
           businessId: { type: 'string', description: 'Business ID' },
           name: { type: 'string', description: 'Account name' },
           description: { type: 'string', description: 'Account description' },
-          type: { 
-            type: 'string', 
-            description: 'Account type: ASSET, LIABILITY, EQUITY, INCOME, EXPENSE',
-            enum: ['ASSET', 'LIABILITY', 'EQUITY', 'INCOME', 'EXPENSE']
+          type: {
+            type: 'string',
+            description: 'High-level account type. Used only to derive a default subtype when subtype is omitted.',
+            enum: ['ASSET', 'LIABILITY', 'EQUITY', 'INCOME', 'EXPENSE'],
           },
-          subtype: { type: 'string', description: 'Account subtype code' },
+          subtype: {
+            type: 'string',
+            description: 'Account subtype (Wave AccountSubtypeValueCreateInput enum)',
+            enum: [
+              'CASH_AND_BANK', 'CREDIT_CARD', 'MONEY_IN_TRANSIT',
+              'RECEIVABLE', 'INVENTORY', 'PROPERTY_PLANT_EQUIPMENT',
+              'DEPRECIATION_AND_AMORTIZATION', 'OTHER_CURRENT_ASSETS',
+              'OTHER_LONG_TERM_ASSETS', 'VENDOR_PREPAYMENTS_AND_CREDITS',
+              'PAYABLE', 'CUSTOMER_PREPAYMENTS_AND_CREDITS',
+              'DUE_TO_YOU_AND_OTHER_OWNERS', 'DUE_FOR_PAYROLL',
+              'OTHER_CURRENT_LIABILITY', 'OTHER_LONG_TERM_LIABILITY', 'LOANS',
+              'RETAINED_EARNINGS', 'NON_RETAINED_EARNINGS',
+              'INCOME', 'OTHER_INCOME', 'COST_OF_GOODS_SOLD',
+              'EXPENSE', 'PAYROLL_EXPENSES', 'PAYMENT_PROCESSING_FEES',
+              'DISCOUNTS', 'GAIN_ON_FOREIGN_EXCHANGE', 'LOSS_ON_FOREIGN_EXCHANGE',
+            ],
+          },
           currency: { type: 'string', description: 'Currency code (e.g., USD)' },
         },
-        required: ['name', 'type'],
+        required: ['name'],
       },
       handler: async (args: any) => {
         const businessId = args.businessId || client.getBusinessId();
         if (!businessId) throw new Error('businessId required');
+
+        // Wave's AccountCreateInput only accepts a `subtype` enum (not `type`).
+        // If no subtype is provided, derive a sensible default from the high-level type.
+        const DEFAULT_SUBTYPES: Record<string, string> = {
+          ASSET: 'CASH_AND_BANK',
+          LIABILITY: 'OTHER_CURRENT_LIABILITY',
+          EQUITY: 'RETAINED_EARNINGS',
+          INCOME: 'INCOME',
+          EXPENSE: 'EXPENSE',
+        };
+        const subtype = args.subtype || DEFAULT_SUBTYPES[args.type || 'EXPENSE'] || 'EXPENSE';
 
         const mutation = `
           mutation CreateAccount($input: AccountCreateInput!) {
@@ -186,8 +213,7 @@ export function registerAccountTools(client: WaveClient) {
             businessId,
             name: args.name,
             description: args.description,
-            type: args.type,
-            subtype: args.subtype,
+            subtype,
             currency: args.currency,
           },
         });
